@@ -1,5 +1,6 @@
 package org.apereo.cas.adaptors.x509.authentication.principal;
 
+import org.apereo.cas.authentication.Credential;
 import org.apereo.cas.authentication.principal.PrincipalFactory;
 import org.apereo.cas.util.function.FunctionUtils;
 
@@ -21,7 +22,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Credential to principal resolver that extracts Subject Alternative Name UPN extension
@@ -42,8 +45,9 @@ public class X509SubjectAlternativeNameUPNPrincipalResolver extends AbstractX509
 
     public X509SubjectAlternativeNameUPNPrincipalResolver(final IPersonAttributeDao attributeRepository,
                                                           final PrincipalFactory principalFactory, final boolean returnNullIfNoAttributes,
-                                                          final String principalAttributeName) {
-        super(attributeRepository, principalFactory, returnNullIfNoAttributes, principalAttributeName);
+                                                          final String principalAttributeName,
+                                                          final String alternatePrincipalAttribute) {
+        super(attributeRepository, principalFactory, returnNullIfNoAttributes, principalAttributeName, alternatePrincipalAttribute);
     }
 
     /**
@@ -143,10 +147,18 @@ public class X509SubjectAlternativeNameUPNPrincipalResolver extends AbstractX509
             }
         } catch (final CertificateParsingException e) {
             LOGGER.error("Error is encountered while trying to retrieve subject alternative names collection from certificate", e);
-            LOGGER.debug("Returning null principal...");
-            return null;
+            return getAlternatePrincipal(certificate);
         }
-        LOGGER.debug("Returning null principal id...");
-        return null;
+
+        return getAlternatePrincipal(certificate);
     }
+
+    @Override
+    protected Map<String, List<Object>> retrievePersonAttributes(final String principalId, final Credential credential) {
+        val attributes = new LinkedHashMap<>(super.retrievePersonAttributes(principalId, credential));
+        val certificate = ((X509CertificateCredential) credential).getCertificate();
+        attributes.putAll(extractPersonAttributes(certificate));
+        return attributes;
+    }
+
 }

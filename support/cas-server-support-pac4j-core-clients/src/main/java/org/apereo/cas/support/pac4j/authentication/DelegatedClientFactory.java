@@ -5,6 +5,7 @@ import org.apereo.cas.configuration.model.support.pac4j.Pac4jBaseClientPropertie
 import org.apereo.cas.configuration.model.support.pac4j.Pac4jDelegatedAuthenticationProperties;
 import org.apereo.cas.configuration.model.support.pac4j.oidc.BasePac4jOidcClientProperties;
 import org.apereo.cas.configuration.model.support.pac4j.oidc.Pac4jOidcClientProperties;
+import org.apereo.cas.configuration.model.support.pac4j.saml.Pac4jSamlClientProperties;
 
 import com.github.scribejava.core.model.Verb;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -26,6 +27,7 @@ import org.pac4j.oauth.client.FoursquareClient;
 import org.pac4j.oauth.client.GenericOAuth20Client;
 import org.pac4j.oauth.client.GitHubClient;
 import org.pac4j.oauth.client.Google2Client;
+import org.pac4j.oauth.client.HiOrgServerClient;
 import org.pac4j.oauth.client.LinkedIn2Client;
 import org.pac4j.oauth.client.OrcidClient;
 import org.pac4j.oauth.client.PayPalClient;
@@ -48,6 +50,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * This is {@link DelegatedClientFactory}.
@@ -224,6 +227,24 @@ public class DelegatedClientFactory {
     }
 
     /**
+     * Configure HiOrg-Server client.
+     *
+     * @param properties the properties
+     */
+    protected void configureHiOrgServerClient(final Collection<BaseClient> properties) {
+        val hiOrgServer = pac4jProperties.getHiOrgServer();
+        if (StringUtils.isNotBlank(hiOrgServer.getId()) && StringUtils.isNotBlank(hiOrgServer.getSecret())) {
+            val client = new HiOrgServerClient(hiOrgServer.getId(), hiOrgServer.getSecret());
+            configureClient(client, hiOrgServer);
+            if (StringUtils.isNotBlank(hiOrgServer.getScope())) {
+                client.getConfiguration().setScope(hiOrgServer.getScope());
+            }
+            LOGGER.debug("Created client [{}] with identifier [{}]", client.getName(), client.getKey());
+            properties.add(client);
+        }
+    }
+
+    /**
      * Configure twitter client.
      *
      * @param properties the properties
@@ -358,7 +379,7 @@ public class DelegatedClientFactory {
                 cfg.setMaximumAuthenticationLifetime(saml.getMaximumAuthenticationLifetime());
                 cfg.setServiceProviderEntityId(saml.getServiceProviderEntityId());
                 cfg.setServiceProviderMetadataPath(saml.getServiceProviderMetadataPath());
-                cfg.setDestinationBindingType(saml.getDestinationBinding());
+                cfg.setAuthnRequestBindingType(saml.getDestinationBinding());
                 cfg.setForceAuth(saml.isForceAuth());
                 cfg.setPassive(saml.isPassive());
                 cfg.setSignMetadata(saml.isSignServiceProviderMetadata());
@@ -388,6 +409,15 @@ public class DelegatedClientFactory {
                         .map(attribute -> new SAML2ServiceProvicerRequestedAttribute(attribute.getName(), attribute.getFriendlyName(),
                             attribute.getNameFormat(), attribute.isRequired()))
                         .forEach(attribute -> cfg.getRequestedServiceProviderAttributes().add(attribute));
+                }
+
+                val mappedAttributes = saml.getMappedAttributes();
+                if (!mappedAttributes.isEmpty()) {
+                    val results = mappedAttributes
+                        .stream()
+                        .collect(Collectors.toMap(Pac4jSamlClientProperties.ServiceProviderMappedAttribute::getName,
+                            Pac4jSamlClientProperties.ServiceProviderMappedAttribute::getMappedTo));
+                    cfg.setMappedAttributes(results);
                 }
 
                 val client = new SAML2Client(cfg);
@@ -529,7 +559,8 @@ public class DelegatedClientFactory {
         configureWordPressClient(clients);
         configureBitBucketClient(clients);
         configureOrcidClient(clients);
-
+        configureHiOrgServerClient(clients);
+        
         return clients;
     }
 }

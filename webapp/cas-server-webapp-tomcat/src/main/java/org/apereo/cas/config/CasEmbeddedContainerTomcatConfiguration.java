@@ -144,7 +144,7 @@ public class CasEmbeddedContainerTomcatConfiguration {
         if (ResourceUtils.doesResourceExist(res)) {
             LOGGER.debug("Configuring rewrite valve at [{}]", res);
 
-            final RewriteValve valve = new RewriteValve() {
+            val valve = new RewriteValve() {
                 @Override
                 public synchronized void startInternal() {
                     try {
@@ -238,7 +238,7 @@ public class CasEmbeddedContainerTomcatConfiguration {
                 LOGGER.info("Configured connector listening on port [{}]", tomcat.getPort());
             });
         } else {
-            LOGGER.debug("HTTP proxying is not enabled for CAS; Connector configuration for port [{}] is not modified.", tomcat.getPort());
+            LOGGER.trace("HTTP proxying is not enabled for CAS; Connector configuration for port [{}] is not modified.", tomcat.getPort());
         }
     }
 

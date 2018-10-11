@@ -17,6 +17,7 @@ import org.apereo.cas.services.MultifactorAuthenticationProvider;
 import org.apereo.cas.services.ServicesManager;
 
 import lombok.val;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -41,12 +42,12 @@ public class U2FAuthenticationEventExecutionPlanConfiguration {
 
     @Autowired
     @Qualifier("servicesManager")
-    private ServicesManager servicesManager;
+    private ObjectProvider<ServicesManager> servicesManager;
 
     @Lazy
     @Autowired
     @Qualifier("u2fDeviceRepository")
-    private U2FDeviceRepository u2fDeviceRepository;
+    private ObjectProvider<U2FDeviceRepository> u2fDeviceRepository;
 
     @Bean
     @RefreshScope
@@ -73,7 +74,7 @@ public class U2FAuthenticationEventExecutionPlanConfiguration {
     @RefreshScope
     public U2FAuthenticationHandler u2fAuthenticationHandler() {
         val u2f = this.casProperties.getAuthn().getMfa().getU2f();
-        return new U2FAuthenticationHandler(u2f.getName(), servicesManager, u2fPrincipalFactory(), u2fDeviceRepository);
+        return new U2FAuthenticationHandler(u2f.getName(), servicesManager.getIfAvailable(), u2fPrincipalFactory(), u2fDeviceRepository.getIfAvailable());
     }
 
     @Bean

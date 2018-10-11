@@ -4,7 +4,7 @@ import org.apereo.cas.authentication.Authentication;
 import org.apereo.cas.authentication.AuthenticationException;
 import org.apereo.cas.authentication.AuthenticationSystemSupport;
 import org.apereo.cas.authentication.Credential;
-import org.apereo.cas.authentication.UsernamePasswordCredential;
+import org.apereo.cas.authentication.credential.UsernamePasswordCredential;
 import org.apereo.cas.authentication.principal.Service;
 import org.apereo.cas.authentication.principal.ServiceFactory;
 import org.apereo.cas.authentication.principal.WebApplicationService;
@@ -129,7 +129,7 @@ public class ECPProfileHandlerController extends AbstractSamlProfileHandlerContr
                 credential.getId(), authentication.getPrincipal());
 
             LOGGER.debug("Building ECP SAML response for [{}]", credential.getId());
-            val issuer = SamlIdPUtils.getIssuerFromSamlRequest(authnRequest);
+            val issuer = SamlIdPUtils.getIssuerFromSamlObject(authnRequest);
             val service = webApplicationServiceFactory.createService(issuer);
             val casAssertion = buildCasAssertion(authentication, service, serviceRequest.getKey(), new LinkedHashMap<>());
 
@@ -174,7 +174,7 @@ public class ECPProfileHandlerController extends AbstractSamlProfileHandlerContr
      */
     protected Authentication authenticateEcpRequest(final Credential credential,
                                                     final Pair<AuthnRequest, MessageContext> authnRequest) {
-        val issuer = SamlIdPUtils.getIssuerFromSamlRequest(authnRequest.getKey());
+        val issuer = SamlIdPUtils.getIssuerFromSamlObject(authnRequest.getKey());
         LOGGER.debug("Located issuer [{}] from request prior to authenticating [{}]", issuer, credential.getId());
 
         val service = webApplicationServiceFactory.createService(issuer);

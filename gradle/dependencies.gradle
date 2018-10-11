@@ -1045,7 +1045,7 @@ ext.libraries = [
                     exclude(group: "io.dropwizard.metrics", module: "metrics-json")
                     force = true
                 },
-                dependencies.create("net.shibboleth.utilities:java-support:$shibbolethUtilJavaSupport") {
+                dependencies.create("net.shibboleth.utilities:java-support:$shibbolethUtilJavaSupportVersion") {
                     exclude(group: "com.google.guava", module: "guava")
                     exclude(group: "joda-time", module: "joda-time")
                     exclude(group: "org.slf4j", module: "slf4j-api")
@@ -3093,9 +3093,6 @@ ext.libraries = [
         ],
         webjars                 : [
                 dependencies.create("org.webjars:headjs:$headjsVersion") {
-                    force = true
-                },
-                dependencies.create("org.webjars:store.js:$storejsVersion") {
                     force = true
                 },
                 dependencies.create("org.webjars:font-awesome:$fontAwesomeVersion") {

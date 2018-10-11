@@ -52,19 +52,19 @@ public class OneTimeTokenAuthenticationConfiguration {
 
     @Autowired
     @Qualifier("centralAuthenticationService")
-    private CentralAuthenticationService centralAuthenticationService;
+    private ObjectProvider<CentralAuthenticationService> centralAuthenticationService;
 
     @Autowired
     @Qualifier("defaultAuthenticationSystemSupport")
-    private AuthenticationSystemSupport authenticationSystemSupport;
+    private ObjectProvider<AuthenticationSystemSupport> authenticationSystemSupport;
 
     @Autowired
     @Qualifier("defaultTicketRegistrySupport")
-    private TicketRegistrySupport ticketRegistrySupport;
+    private ObjectProvider<TicketRegistrySupport> ticketRegistrySupport;
 
     @Autowired
     @Qualifier("servicesManager")
-    private ServicesManager servicesManager;
+    private ObjectProvider<ServicesManager> servicesManager;
 
     @Autowired
     @Qualifier("multifactorAuthenticationProviderSelector")
@@ -72,21 +72,21 @@ public class OneTimeTokenAuthenticationConfiguration {
 
     @Autowired
     @Qualifier("warnCookieGenerator")
-    private CookieGenerator warnCookieGenerator;
+    private ObjectProvider<CookieGenerator> warnCookieGenerator;
 
     @Autowired
     @Qualifier("authenticationServiceSelectionPlan")
-    private AuthenticationServiceSelectionPlan authenticationRequestServiceSelectionStrategies;
+    private ObjectProvider<AuthenticationServiceSelectionPlan> authenticationRequestServiceSelectionStrategies;
 
     @Bean
     @RefreshScope
     public CasWebflowEventResolver oneTimeTokenAuthenticationWebflowEventResolver() {
-        return new OneTimeTokenAuthenticationWebflowEventResolver(authenticationSystemSupport,
-            centralAuthenticationService,
-            servicesManager,
-            ticketRegistrySupport,
-            warnCookieGenerator,
-            authenticationRequestServiceSelectionStrategies,
+        return new OneTimeTokenAuthenticationWebflowEventResolver(authenticationSystemSupport.getIfAvailable(),
+            centralAuthenticationService.getIfAvailable(),
+            servicesManager.getIfAvailable(),
+            ticketRegistrySupport.getIfAvailable(),
+            warnCookieGenerator.getIfAvailable(),
+            authenticationRequestServiceSelectionStrategies.getIfAvailable(),
             multifactorAuthenticationProviderSelector.getIfAvailable(RankedMultifactorAuthenticationProviderSelector::new));
     }
 

@@ -14,6 +14,7 @@ import org.apereo.cas.web.flow.CasWebflowExecutionPlanConfigurer;
 import org.apereo.cas.web.flow.SingleSignOnParticipationStrategy;
 
 import lombok.val;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -41,15 +42,15 @@ public class CasInterruptWebflowConfiguration implements CasWebflowExecutionPlan
 
     @Autowired
     @Qualifier("servicesManager")
-    private ServicesManager servicesManager;
+    private ObjectProvider<ServicesManager> servicesManager;
 
     @Autowired
     @Qualifier("interruptInquirer")
-    private InterruptInquiryExecutionPlan interruptInquirer;
+    private ObjectProvider<InterruptInquiryExecutionPlan> interruptInquirer;
 
     @Autowired
     @Qualifier("loginFlowRegistry")
-    private FlowDefinitionRegistry loginFlowDefinitionRegistry;
+    private ObjectProvider<FlowDefinitionRegistry> loginFlowDefinitionRegistry;
 
     @Autowired
     private FlowBuilderServices flowBuilderServices;
@@ -61,13 +62,13 @@ public class CasInterruptWebflowConfiguration implements CasWebflowExecutionPlan
     @Bean
     @DependsOn("defaultWebflowConfigurer")
     public CasWebflowConfigurer interruptWebflowConfigurer() {
-        return new InterruptWebflowConfigurer(flowBuilderServices, loginFlowDefinitionRegistry, applicationContext, casProperties);
+        return new InterruptWebflowConfigurer(flowBuilderServices, loginFlowDefinitionRegistry.getIfAvailable(), applicationContext, casProperties);
     }
 
     @ConditionalOnMissingBean(name = "inquireInterruptAction")
     @Bean
     public Action inquireInterruptAction() {
-        return new InquireInterruptAction(interruptInquirer.getInterruptInquirers());
+        return new InquireInterruptAction(interruptInquirer.getIfAvailable().getInterruptInquirers());
     }
 
     @ConditionalOnMissingBean(name = "prepareInterruptViewAction")
@@ -86,7 +87,7 @@ public class CasInterruptWebflowConfiguration implements CasWebflowExecutionPlan
     @RefreshScope
     public SingleSignOnParticipationStrategy singleSignOnParticipationStrategy() {
         val sso = casProperties.getSso();
-        return new InterruptSingleSignOnParticipationStrategy(servicesManager,
+        return new InterruptSingleSignOnParticipationStrategy(servicesManager.getIfAvailable(),
             sso.isCreateSsoCookieOnRenewAuthn(),
             sso.isRenewAuthnEnabled());
     }
